@@ -3,13 +3,20 @@ import concurrent.futures  # threads
 import filecmp
 import json
 import os
-from sys import argv
-from urllib.request import urlretrieve
 
 import requests
 from file_categorizer import categorize_files
+from courseslist import get_courses_list, print_courses_list
+
 
 parse = argparse.ArgumentParser()
+
+parse.add_argument(
+    "--list-courses",
+    help="List all courses and term ID's. Requires API token.",
+    action="store_true",
+    required=False,
+)
 parse.add_argument(
     "--api-token",
     metavar="API_TOKEN (str)",
@@ -104,6 +111,13 @@ HEADERS = {"Authorization": f"Bearer {API_TOKEN}"}
 args = parse.parse_args()
 if args.api_token:
     API_TOKEN = args.api_token
+if args.list_courses:
+    try:
+        courses_list = get_courses_list(API_URL, API_TOKEN)
+        print_courses_list(courses_list)
+    except:
+        print("Failed to get courses list")
+    exit()
 if args.terms_id:
     TERMS_ID = args.terms_id[0]
 if args.course_whitelist:
@@ -123,22 +137,6 @@ if args.no_byte_checking:
 
 if args.use_file_categorizer:
     USE_FILE_CATEGORIZER = args.use_file_categorizer
-
-
-def check_arguments(argv):
-    print(argv)
-
-
-def courses_filter(list_to_check, whitelist, blacklist):
-    if whitelist:
-        return whitelist
-
-    if not blacklist:
-        return list_to_check
-
-    # Sets remove duplicates as well so it's a win win situation, time complexity O(N+M)
-    # Where N = number of elements in list_to_check and M = number of elements in blacklist
-    return list(set(list_to_check) - set(blacklist))
 
 
 def get_unique_filename(filepath, original_filepath=None, counter=1):
@@ -162,7 +160,11 @@ def process_single_file(file_data, course_code):
     try:
         if not os.path.exists(original_file_path):
             if original_file_path not in downloaded_files:
-                urlretrieve(download_url, original_file_path)
+                response = requests.get(download_url, stream=True)
+                response.raise_for_status() # Check for HTTP errors
+                with open(original_file_path, 'wb') as f:
+                    for chunk in response.iter_content(chunk_size=8192):
+                        f.write(chunk)
                 downloaded_files[original_file_path] = original_file_path
                 with open(".downloaded_files", "w") as f:
                     json.dump(downloaded_files, f)
@@ -171,7 +173,11 @@ def process_single_file(file_data, course_code):
                 return f'File "{display_name}" already exists. File was not downloaded.'
         if not NO_BYTE_CHECKING:
             temp_file_path = f"{original_file_path}.tmp"
-            urlretrieve(download_url, temp_file_path)
+            response = requests.get(download_url, stream=True)
+            response.raise_for_status() # Check for HTTP errors
+            with open(original_file_path, 'wb') as f:
+                for chunk in response.iter_content(chunk_size=8192):
+                    f.write(chunk)
 
             if filecmp.cmp(original_file_path, temp_file_path, shallow=False):
                 os.remove(temp_file_path)
