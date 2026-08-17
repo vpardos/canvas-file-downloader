@@ -9,7 +9,6 @@ canvas-file-downloader is a powerful, multi-threaded Python tool to automate dow
 * **Auto-Categorization**: Optionally sorts downloaded files into specific directories (e.g., *Clase*, *Ayudantías*, *Apuntes*) based on file name keywords.
 * **Flexible Filtering**: Whitelist or blacklist specific courses, terms, or file extensions.
 * **CLI & JSON Configuration**: Easily configure the tool globally via a JSON file or override settings per-run using command-line arguments.
-
 ## Requirements
 
 * Python 3.6+
@@ -38,7 +37,7 @@ pip install requests
 {
   "api_token": "YOUR_API_TOKEN_HERE",
   "canvas_domain": "https://cursos.canvas.uc.cl",
-  "download_terms_ids": [273],
+  "download_terms_ids": [int],
   "course_whitelist": [],
   "course_blacklist": [],
   "extension_blacklist": [],
@@ -73,6 +72,7 @@ You can override the settings in `config.json` dynamically using the following C
 | Flag | Description |
 |------|-------------|
 | `--api-token <TOKEN>` | Override the Canvas API token. |
+| `--list-courses` | List all available courses and their term IDs. |
 | `--terms-id <ID> [<ID>...]` | Override the course term IDs. |
 | `--course-whitelist <COURSE> [<COURSE>...]` | Only download files from these specific courses. |
 | `--course-blacklist <COURSE> [<COURSE>...]` | Do not download files from these courses. |
@@ -98,4 +98,3 @@ If you enable the `--use-file-categorizer` flag, `file_categorizer.py` will scan
 * **Talleres**: Matches `taller`, `talleres`.
 
 If a file matches a category, a folder for that category is created automatically within the course directory, and the file is cleanly moved inside.
-

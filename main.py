@@ -6,8 +6,17 @@ import os
 
 import requests
 from file_categorizer import categorize_files
+from courseslist import get_courses_list, print_courses_list
+
 
 parse = argparse.ArgumentParser()
+
+parse.add_argument(
+    "--list-courses",
+    help="List all courses and term ID's. Requires API token.",
+    action="store_true",
+    required=False,
+)
 parse.add_argument(
     "--api-token",
     metavar="API_TOKEN (str)",
@@ -102,6 +111,13 @@ HEADERS = {"Authorization": f"Bearer {API_TOKEN}"}
 args = parse.parse_args()
 if args.api_token:
     API_TOKEN = args.api_token
+if args.list_courses:
+    try:
+        courses_list = get_courses_list(API_URL, API_TOKEN)
+        print_courses_list(courses_list)
+    except:
+        print("Failed to get courses list")
+    exit()
 if args.terms_id:
     TERMS_ID = args.terms_id[0]
 if args.course_whitelist:
