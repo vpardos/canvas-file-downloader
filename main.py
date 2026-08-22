@@ -103,7 +103,7 @@ if len(EXTENSION_WHITELIST) != 0:
 else:
     EXTENSION_BLACKLIST = config.get("extension_blacklist", [])
 
-DEFAULT_DOWNLOAD_DIR = config.get("default_download_dir", ".")
+DEFAULT_DOWNLOAD_DIR = os.path.expandvars(config.get("default_download_dir", "."))
 CREATE_COURSE_DIR = config.get("create_course_dir", True)
 API_URL = f"{CANVAS_DOMAIN}/api/v1/courses"
 HEADERS = {"Authorization": f"Bearer {API_TOKEN}"}
