@@ -56,3 +56,20 @@ def save_token(token: str) -> str:  # called by cli
         except Exception as e:
             pass  # store exists but failed (locked, etc.) -> use the file
     return str(_write_file_token(token))
+
+
+def delete_token() -> list:  # called by cli
+    # Remove the token from the password store and the file; return where it was removed from.
+    removed = []
+    kr = _keyring()
+    if kr is not None:
+        try:
+            kr.delete_password(KEYRING_SERVICE, KEYRING_USERNAME)
+            removed.append("the system password store")
+        except Exception:
+            pass  # nothing saved there
+    path = config_dir() / "credentials.json"
+    if path.exists():
+        path.unlink()
+        removed.append(str(path))
+    return removed
