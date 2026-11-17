@@ -56,15 +56,20 @@ sudo mkdir -p /usr/local/bin && sudo mv canvasdl /usr/local/bin/
 
 If you downloaded it with the browser instead, macOS blocks it because it isn't signed by Apple. Allow it once with `xattr -d com.apple.quarantine canvasdl`, or right-click it in Finder → **Open**.
 
-**Windows**:
+**Windows** (Windows 10 and 11 include `curl`):
 
-1. Download `canvasdl-windows-x64.exe`, rename it to `canvasdl.exe`, and move it to a folder of your own, e.g. `C:\Users\<you>\bin`.
-2. Add that folder to your `PATH`: open **Start**, search **"Edit environment variables for your account"**, select **Path** → **Edit** → **New**, paste the folder, and press **OK**.
-3. Open a new terminal (PowerShell or Command Prompt) and run `canvasdl --version`.
+1. In **Command Prompt**, download it into a `bin` folder inside your user folder, already named `canvasdl.exe`:
+   ```bat
+   mkdir %USERPROFILE%\bin
+   curl -L -o %USERPROFILE%\bin\canvasdl.exe https://github.com/vpardos/canvas-file-downloader/releases/latest/download/canvasdl-windows-x64.exe
+   ```
+   If the folder already exists, `mkdir` says so; that's fine. In PowerShell, write `curl.exe` instead of `curl` and `$env:USERPROFILE` instead of `%USERPROFILE%`.
+2. Add that folder to your `PATH` (only once): open **Start**, search **"Edit environment variables for your account"**, select **Path** → **Edit** → **New**, type `%USERPROFILE%\bin`, and press **OK** in both windows.
+3. Open a **new** Command Prompt (one that was already open doesn't see the change) and run `canvasdl --version`.
 
-The first time, Windows may show **"Windows protected your PC"** because the program isn't signed: click **More info** → **Run anyway**. In PowerShell you can also run `Unblock-File canvasdl.exe` in that folder.
+If you'd rather use the browser: download `canvasdl-windows-x64.exe` from the release page, move it to that folder and rename it to `canvasdl.exe`. If Explorer hides file extensions, type only `canvasdl` when renaming; typing `canvasdl.exe` would make it `canvasdl.exe.exe`. Files downloaded with the browser may show **"Windows protected your PC"** the first time, because the program isn't signed: click **More info** → **Run anyway**, or run `Unblock-File canvasdl.exe` in PowerShell in that folder.
 
-**To update**, download the new file the same way and replace the old one.
+**To update**, run the same `curl` command again (or download the new file the same way); it replaces the old one.
 
 ### Option 2: install with pipx (needs Python)
 
@@ -321,6 +326,7 @@ Pressing **Ctrl+C** cancels the files that haven't started yet and waits for the
 | `Couldn't create the folders of ...` / `File error: ...` | No permission to write there, or the disk is full: `cd` to a folder you own |
 | `Windows protected your PC` / macOS says `canvasdl` can't be opened | The downloaded program isn't signed: see [Option 1](#option-1-download-the-program-no-python-needed) for how to allow it |
 | `Permission denied` when running the downloaded program (Linux / macOS) | Make it executable: `chmod +x canvasdl` |
+| `'canvasdl' is not recognized as an internal or external command` (Windows) | The file must be named exactly `canvasdl.exe` and be in a folder listed in your `PATH`; then open a new terminal. See [Option 1](#option-1-download-the-program-no-python-needed) |
 | `canvasdl: command not found` | Activate the virtual environment (`source .venv/bin/activate`) or install with pipx |
 
 ## License
