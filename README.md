@@ -257,3 +257,7 @@ Pressing **Ctrl+C** cancels the files that haven't started yet and waits for the
 | `... config.json is damaged` / `... credentials.json is damaged` | The file was edited by hand and isn't valid JSON: fix it, or delete it and run `canvasdl domain set` / `canvasdl token set` again |
 | `Couldn't create the folders of ...` / `File error: ...` | No permission to write there, or the disk is full: `cd` to a folder you own |
 | `canvasdl: command not found` | Activate the virtual environment (`source .venv/bin/activate`) or install with pipx |
+
+## License
+
+[MIT](LICENSE): you can use, modify and share this project freely, as long as you keep the copyright notice.

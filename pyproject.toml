@@ -1,10 +1,12 @@
 [build-system]
-requires = ["setuptools>=61"]
+requires = ["setuptools>=77"]  # 77+ understands the license = "MIT" format below
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "canvas-downloader"
 dynamic = ["version"]  # read from canvas_downloader/__init__.py, see [tool.setuptools.dynamic]
+license = "MIT"
+license-files = ["LICENSE"]  # included in the installed package
 requires-python = ">=3.8"  # written in 3.14.4
 dependencies = ["keyring>=24", "requests>=2.31"]
 
