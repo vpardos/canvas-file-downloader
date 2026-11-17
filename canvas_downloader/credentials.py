@@ -1,22 +1,11 @@
 import json
 import os
-import sys
 from pathlib import Path
 
-APP_NAME = "canvasdl"
+from .config import config_dir, credentials_file
+
 KEYRING_SERVICE = "canvasdl"
 KEYRING_USERNAME = "api_token"
-
-
-def config_dir() -> Path:
-    # Per-user config folder, following each OS's convention
-    if sys.platform == "win32":
-        base = Path(os.environ.get("APPDATA") or Path.home() / "AppData" / "Roaming")
-    elif sys.platform == "darwin":
-        base = Path.home() / "Library" / "Application Support"
-    else:
-        base = Path(os.environ.get("XDG_CONFIG_HOME") or Path.home() / ".config")
-    return base / APP_NAME
 
 
 def _keyring():
@@ -36,7 +25,7 @@ def _keyring():
 
 
 def _write_file_token(token: str) -> Path:
-    path = config_dir() / "credentials.json"
+    path = credentials_file()
     path.parent.mkdir(parents=True, exist_ok=True)
     # create the file readable/writable only by you (0600)
     fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
@@ -68,8 +57,24 @@ def delete_token() -> list:  # called by cli
             removed.append("the system password store")
         except Exception:
             pass  # nothing saved there
-    path = config_dir() / "credentials.json"
+    path = credentials_file()
     if path.exists():
         path.unlink()
         removed.append(str(path))
     return removed
+
+def load_token():  # called by canvas.py
+    # Return the saved token, or None if there isn't one.
+    kr = _keyring()
+    if kr is not None:
+        try:
+            token = kr.get_password(KEYRING_SERVICE, KEYRING_USERNAME)
+            if token:
+                return token
+        except Exception:
+            pass
+    path = credentials_file()
+    if path.exists():
+        with open(path, encoding="utf-8") as f:
+            return json.load(f).get("api_token")
+    return None
