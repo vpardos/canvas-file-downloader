@@ -30,6 +30,24 @@ def cmd_domain_set(args):
     print(f"Canvas domain set to {config.load_domain()}")
 
 
+def cmd_show_courses(args):
+    courses = canvas.get_courses()
+    if not courses:
+        print("No courses found")
+        return
+
+    # group courses by semester: {(term_id, term_name): [course, ...]}
+    by_semester = {}
+    for course in courses:
+        term = course.get("term") or {"id": 0, "name": "No semester"}
+        by_semester.setdefault((term["id"], term["name"]), []).append(course)
+
+    for (term_id, term_name), term_courses in sorted(by_semester.items(), reverse=True):
+        print(f"\n{term_name} (semester ID {term_id})")
+        for course in sorted(term_courses, key=lambda c: c.get("course_code", "")):
+            print(f"  {course['id']:>6}  {course.get('course_code', '')}  {course.get('name', '')}")
+
+
 def cmd_show_semesters(args):
     semesters = canvas.get_semesters()
     if not semesters:
@@ -68,8 +86,8 @@ def build_parser():
     show = commands.add_parser("show", help="show information from Canvas")
     show_actions = show.add_subparsers(dest="action", required=True)
     # -
-    show_semesters_parser = show_actions.add_parser("all", help="list semesters and their courses")
-    show_semesters_parser.set_defaults(func=cmd_show_semesters)
+    show_courses_parser = show_actions.add_parser("courses", help="list your courses grouped by semester")
+    show_courses_parser.set_defaults(func=cmd_show_courses)
 
     show_semesters_parser = show_actions.add_parser("semesters", help="list your semesters and their IDs")
     show_semesters_parser.set_defaults(func=cmd_show_semesters)
