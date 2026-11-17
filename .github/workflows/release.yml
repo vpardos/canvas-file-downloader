@@ -1,0 +1,99 @@
+# Builds a standalone "canvasdl" executable for Windows, macOS and Linux, so people
+# can use canvasdl without installing Python.
+#
+# - Pushing a tag like v2.0.0 builds the executables and publishes them as a GitHub Release.
+# - "Run workflow" in the Actions tab only builds them (downloadable from the run page),
+#   without publishing anything: useful to test the build before tagging.
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write  # needed to create the release
+
+jobs:
+  build:
+    name: Build ${{ matrix.target }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false  # one OS failing doesn't cancel the others
+      matrix:
+        include:
+          - os: ubuntu-22.04  # older Linux = works on more distributions (glibc 2.35+)
+            target: linux-x64
+          - os: windows-latest
+            target: windows-x64
+          - os: macos-latest  # Apple Silicon (M1 and newer)
+            target: macos-arm64
+    defaults:
+      run:
+        shell: bash  # same commands on every OS (Windows runners include Git Bash)
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install canvasdl and PyInstaller
+        run: |
+          python -m pip install --upgrade pip
+          pip install . pyinstaller
+
+      - name: Build the executable
+        # --copy-metadata / --collect-submodules: keyring finds the OS password store
+        # (Credential Manager, Keychain, Secret Service) through its package metadata
+        run: >
+          pyinstaller --onefile --name canvasdl
+          --copy-metadata keyring
+          --collect-submodules keyring.backends
+          pyinstaller_entry.py
+
+      - name: Check the executable runs
+        run: dist/canvasdl --version
+
+      - name: Check the version matches the tag
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          expected="canvasdl ${GITHUB_REF_NAME#v}"
+          actual="$(dist/canvasdl --version)"
+          if [ "$actual" != "$expected" ]; then
+            echo "Tag is $GITHUB_REF_NAME but the program says '$actual'."
+            echo "Update __version__ in canvas_downloader/__init__.py before tagging."
+            exit 1
+          fi
+
+      - name: Name the file after its system
+        run: |
+          if [ "$RUNNER_OS" = "Windows" ]; then
+            mv dist/canvasdl.exe "canvasdl-${{ matrix.target }}.exe"
+          else
+            mv dist/canvasdl "canvasdl-${{ matrix.target }}"
+          fi
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: canvasdl-${{ matrix.target }}
+          path: canvasdl-${{ matrix.target }}*
+
+  release:
+    name: Publish the release
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v')  # only for tags, not for "Run workflow"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: files
+          merge-multiple: true
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: files/*
+          generate_release_notes: true  # lists the merged pull requests since the last release
+          # tags like v2.1.0.dev0 or v2.1.0rc1 are marked as pre-releases
+          prerelease: ${{ contains(github.ref_name, 'dev') || contains(github.ref_name, 'rc') }}
