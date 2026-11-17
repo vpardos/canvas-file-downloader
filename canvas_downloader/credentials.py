@@ -2,7 +2,7 @@ import json
 import os
 from pathlib import Path
 
-from .config import config_dir, credentials_file
+from .config import credentials_file, read_json
 
 KEYRING_SERVICE = "canvasdl"
 KEYRING_USERNAME = "api_token"
@@ -73,8 +73,4 @@ def load_token():  # called by canvas.py
                 return token
         except Exception:
             pass
-    path = credentials_file()
-    if path.exists():
-        with open(path, encoding="utf-8") as f:
-            return json.load(f).get("api_token")
-    return None
+    return read_json(credentials_file()).get("api_token")

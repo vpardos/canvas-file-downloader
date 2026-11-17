@@ -23,12 +23,22 @@ def config_file() -> Path:
 def credentials_file() -> Path:
     return config_dir() / "credentials.json"
 
-def load_domain():
-    path = config_dir() / "config.json"
-    if path.exists():
+def read_json(path) -> dict:  # also used by credentials
+    # read a settings file; a damaged file gives a clear message instead of a traceback
+    if not path.exists():
+        return {}
+    try:
         with open(path, encoding="utf-8") as f:
-            return json.load(f).get("domain")
-    return None
+            data = json.load(f)
+    except (json.JSONDecodeError, UnicodeDecodeError) as e:
+        raise SystemExit(f"{path} is damaged ({e}).\nFix it or delete it, then run the setup command again.")
+    if not isinstance(data, dict):
+        raise SystemExit(f"{path} has an unexpected format.\nFix it or delete it, then run the setup command again.")
+    return data
+
+
+def load_domain():
+    return read_json(config_file()).get("domain")
 
 
 def save_domain(domain: str):
@@ -36,11 +46,7 @@ def save_domain(domain: str):
     path.parent.mkdir(parents=True, exist_ok=True)
 
     # keep the other settings already in config.json, only change "domain"
-    settings = {}
-    if path.exists():
-        with open(path, encoding="utf-8") as f:
-            settings = json.load(f)
-
+    settings = read_json(path)
     settings["domain"] = domain.rstrip("/")
     with open(path, "w", encoding="utf-8") as f:
         json.dump(settings, f, indent=2)
