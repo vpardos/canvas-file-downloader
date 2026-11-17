@@ -19,21 +19,70 @@ canvasdl clone -s 120            # download every course of that semester
 
 ## Requirements
 
-* Python 3.8 or newer
 * A Canvas account and an API token (see [Setup](#setup))
-
-`canvasdl` installs its own dependencies (`requests` and `keyring`).
+* One of:
+  * **Nothing else**, if you download the ready-made program: Windows 10/11 (64-bit), macOS on Apple Silicon (M1 or newer), or 64-bit Linux / WSL (Ubuntu 22.04 or newer, or any distribution with glibc 2.35+)
+  * **Python 3.8+ and pipx**, on any system (including Intel Macs)
 
 ## Installation
 
-### For everyday use (recommended)
+### Option 1: download the program (no Python needed)
 
-[pipx](https://pipx.pypa.io/) installs `canvasdl` in its own isolated environment and makes the command available in every terminal:
+Get the file for your system from the [latest release](https://github.com/vpardos/canvas-file-downloader/releases/latest):
+
+| System | File |
+|---|---|
+| Windows | `canvasdl-windows-x64.exe` |
+| macOS (Apple Silicon) | `canvasdl-macos-arm64` |
+| Linux / WSL | `canvasdl-linux-x64` |
+
+**Linux / WSL**: download it straight into a folder that's on your `PATH`:
 
 ```bash
-git clone https://github.com/vpardos/canvas-file-downloader.git
-pipx install ./canvas-file-downloader
+mkdir -p ~/.local/bin
+curl -L -o ~/.local/bin/canvasdl https://github.com/vpardos/canvas-file-downloader/releases/latest/download/canvasdl-linux-x64
+chmod +x ~/.local/bin/canvasdl
 ```
+
+If `canvasdl` isn't found afterwards, open a new terminal (Ubuntu adds `~/.local/bin` to the `PATH` at login once the folder exists).
+
+**macOS (Apple Silicon)**:
+
+```bash
+curl -L -o canvasdl https://github.com/vpardos/canvas-file-downloader/releases/latest/download/canvasdl-macos-arm64
+chmod +x canvasdl
+sudo mkdir -p /usr/local/bin && sudo mv canvasdl /usr/local/bin/
+```
+
+If you downloaded it with the browser instead, macOS blocks it because it isn't signed by Apple. Allow it once with `xattr -d com.apple.quarantine canvasdl`, or right-click it in Finder → **Open**.
+
+**Windows**:
+
+1. Download `canvasdl-windows-x64.exe`, rename it to `canvasdl.exe`, and move it to a folder of your own, e.g. `C:\Users\<you>\bin`.
+2. Add that folder to your `PATH`: open **Start**, search **"Edit environment variables for your account"**, select **Path** → **Edit** → **New**, paste the folder, and press **OK**.
+3. Open a new terminal (PowerShell or Command Prompt) and run `canvasdl --version`.
+
+The first time, Windows may show **"Windows protected your PC"** because the program isn't signed: click **More info** → **Run anyway**. In PowerShell you can also run `Unblock-File canvasdl.exe` in that folder.
+
+**To update**, download the new file the same way and replace the old one.
+
+### Option 2: install with pipx (needs Python)
+
+[pipx](https://pipx.pypa.io/) installs `canvasdl` in its own isolated environment and makes the command available in every terminal. Install pipx once:
+
+| System | Command |
+|---|---|
+| Ubuntu / WSL | `sudo apt install pipx && pipx ensurepath` |
+| macOS | `brew install pipx && pipx ensurepath` |
+| Windows | `py -m pip install --user pipx` then `py -m pipx ensurepath` |
+
+Open a new terminal, then install `canvasdl` (Git is not needed):
+
+```bash
+pipx install https://github.com/vpardos/canvas-file-downloader/archive/refs/heads/main.zip
+```
+
+To update to the latest version, run the same command with `--force`.
 
 ### For development
 
@@ -48,6 +97,20 @@ pip install -e .
 ```
 
 The `canvasdl` command is available while the virtual environment is active, from any folder. Run `pip install -e .` again only after changing `pyproject.toml`.
+
+### Releasing a new version
+
+The downloadable programs are built by GitHub Actions (`.github/workflows/release.yml`):
+
+1. Set the new version in `canvas_downloader/__init__.py` (e.g. `__version__ = "2.0.0"`) and merge it into `main`.
+2. Tag that commit and push the tag:
+   ```bash
+   git switch main && git pull
+   git tag v2.0.0 && git push origin v2.0.0
+   ```
+3. The workflow builds `canvasdl` for Windows, macOS and Linux (a few minutes) and publishes them as a GitHub Release with notes listing the merged pull requests. If the tag doesn't match `__version__`, it stops without publishing.
+
+To test the build without releasing anything, open **Actions → Release → Run workflow**; the executables can then be downloaded from that run's page.
 
 ## Setup
 
@@ -256,6 +319,8 @@ Pressing **Ctrl+C** cancels the files that haven't started yet and waits for the
 | `Canvas doesn't allow access to the files of ... (HTTP 403)` | Canvas doesn't let you download that course's files; nothing to fix on your side |
 | `... config.json is damaged` / `... credentials.json is damaged` | The file was edited by hand and isn't valid JSON: fix it, or delete it and run `canvasdl domain set` / `canvasdl token set` again |
 | `Couldn't create the folders of ...` / `File error: ...` | No permission to write there, or the disk is full: `cd` to a folder you own |
+| `Windows protected your PC` / macOS says `canvasdl` can't be opened | The downloaded program isn't signed: see [Option 1](#option-1-download-the-program-no-python-needed) for how to allow it |
+| `Permission denied` when running the downloaded program (Linux / macOS) | Make it executable: `chmod +x canvasdl` |
 | `canvasdl: command not found` | Activate the virtual environment (`source .venv/bin/activate`) or install with pipx |
 
 ## License
