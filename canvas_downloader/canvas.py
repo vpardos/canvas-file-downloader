@@ -23,6 +23,12 @@ def error_message(error):  # called by cli
     # turn a failed request into a short explanation of what to do
     if isinstance(error, requests.HTTPError) and error.response is not None:
         status = error.response.status_code
+        if status == 400:
+            # Canvas answers 400 when the token contains invisible characters (e.g. saved by older versions)
+            return (
+                "Canvas rejected the request (HTTP 400). Your saved token is probably damaged.\n"
+                "Run: canvasdl token delete, then: canvasdl token set"
+            )
         if status == 401:
             return "Canvas rejected your token (HTTP 401). It may be wrong or expired.\nCreate a new one and run: canvasdl token set"
         if status == 403 and "Rate Limit Exceeded" in error.response.text:

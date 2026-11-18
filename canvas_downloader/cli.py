@@ -15,6 +15,9 @@ def cmd_token_set(args):
     if not token:
         print("No token entered, nothing was saved")
         return
+    problem = credentials.token_problem(token)
+    if problem:
+        raise SystemExit(problem)  # don't save a broken token; exit with code 1
     where = credentials.save_token(token)
     print(f"Token saved to {where}")
 

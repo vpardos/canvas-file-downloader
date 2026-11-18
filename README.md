@@ -136,6 +136,8 @@ canvasdl token set
 
 Paste the token when asked. Nothing appears while you type or paste; that's intentional, so the token isn't visible on screen. See [Where your token and settings are stored](#where-your-token-and-settings-are-stored).
 
+On Windows, in **Command Prompt** Ctrl+V doesn't paste at this prompt: click the icon in the window's top-left corner → **Edit** → **Paste** instead, then press Enter. In **Windows Terminal**, Ctrl+V works normally.
+
 ### 3. Save your Canvas domain
 
 This is the address you use to open Canvas in your browser:
@@ -318,6 +320,8 @@ Pressing **Ctrl+C** cancels the files that haven't started yet and waits for the
 | `No token saved` | Run `canvasdl token set` |
 | `No Canvas domain configured` | Run `canvasdl domain set https://your-canvas-address` |
 | `Canvas rejected your token (HTTP 401)` | The token is wrong or expired: create a new one in Canvas and run `canvasdl token set` |
+| `That doesn't look like a Canvas token` | What was pasted isn't a token (often Ctrl+V in Command Prompt, which doesn't paste there): see [Save the token](#2-save-the-token) |
+| `Canvas rejected the request (HTTP 400)` | The saved token is damaged: run `canvasdl token delete`, then `canvasdl token set` and paste as described in [Save the token](#2-save-the-token) |
 | `Couldn't connect to Canvas` | Check your internet connection, and that your domain is right (`canvasdl domain set`) |
 | `Not found on Canvas (HTTP 404)` | Your domain probably isn't your Canvas address: run `canvasdl domain set` again |
 | `Canvas is limiting your requests (rate limit)` | Wait a minute and run the command again; already downloaded files are skipped |

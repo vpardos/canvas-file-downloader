@@ -8,6 +8,25 @@ KEYRING_SERVICE = "canvasdl"
 KEYRING_USERNAME = "api_token"
 
 
+def token_problem(token):  # called by cli
+    # Return why this can't be a Canvas token, or None if it looks fine.
+    # A Canvas token is a long string of letters, digits and "~" (e.g. "1234~AbC...").
+    if any(ord(c) < 32 or ord(c) == 127 for c in token):
+        # e.g. Ctrl+V in Command Prompt is saved as the invisible character 0x16 instead of pasting
+        return (
+            "That doesn't look like a Canvas token: it contains an invisible character, so nothing was saved.\n"
+            "In Command Prompt, Ctrl+V doesn't paste at this prompt. Instead, click the icon in the window's\n"
+            "top-left corner -> Edit -> Paste (or use Windows Terminal, where Ctrl+V works).\n"
+            "Then run again: canvasdl token set"
+        )
+    if not token.isascii() or " " in token or len(token) < 20:
+        return (
+            "That doesn't look like a Canvas token (they're long, with only letters, digits and \"~\"), "
+            "so nothing was saved.\nCopy it again from Canvas and run: canvasdl token set"
+        )
+    return None
+
+
 def _keyring():
     """Return the keyring module if a real password store is usable, else None."""
     try:
