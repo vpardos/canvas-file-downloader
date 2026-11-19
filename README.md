@@ -58,18 +58,26 @@ If you downloaded it with the browser instead, macOS blocks it because it isn't 
 
 **Windows** (Windows 10 and 11 include `curl`):
 
-1. In **Command Prompt**, download it into a `bin` folder inside your user folder, already named `canvasdl.exe`:
+1. Download it into a `bin` folder inside your user folder, already named `canvasdl.exe`.
+
+   In **Command Prompt**:
    ```bat
    mkdir %USERPROFILE%\bin
    curl -L -o %USERPROFILE%\bin\canvasdl.exe https://github.com/vpardos/canvas-file-downloader/releases/latest/download/canvasdl-windows-x64.exe
    ```
-   If the folder already exists, `mkdir` says so; that's fine. In PowerShell, write `curl.exe` instead of `curl` and `$env:USERPROFILE` instead of `%USERPROFILE%`.
+   If the folder already exists, `mkdir` says so; that's fine.
+
+   In **PowerShell**:
+   ```powershell
+   mkdir -Force $env:USERPROFILE\bin
+   curl.exe -L -o $env:USERPROFILE\bin\canvasdl.exe https://github.com/vpardos/canvas-file-downloader/releases/latest/download/canvasdl-windows-x64.exe
+   ```
 2. Add that folder to your `PATH` (only once): open **Start**, search **"Edit environment variables for your account"**, select **Path** → **Edit** → **New**, type `%USERPROFILE%\bin`, and press **OK** in both windows.
-3. Open a **new** Command Prompt (one that was already open doesn't see the change) and run `canvasdl --version`.
+3. Open a **new** Command Prompt or PowerShell window (one that was already open doesn't see the change; in Windows Terminal, close every window) and run `canvasdl --version`.
 
 If you'd rather use the browser: download `canvasdl-windows-x64.exe` from the release page, move it to that folder and rename it to `canvasdl.exe`. If Explorer hides file extensions, type only `canvasdl` when renaming; typing `canvasdl.exe` would make it `canvasdl.exe.exe`. Files downloaded with the browser may show **"Windows protected your PC"** the first time, because the program isn't signed: click **More info** → **Run anyway**, or run `Unblock-File canvasdl.exe` in PowerShell in that folder.
 
-**To update**, run the same `curl` command again (or download the new file the same way); it replaces the old one.
+**To update**, run the same download command again: the `curl` line on Linux / WSL, all three macOS commands, or on Windows the `curl` (Command Prompt) or `curl.exe` (PowerShell) line. It downloads the latest release over the old file; check with `canvasdl --version`. If you used the browser, download the new file and replace the old one the same way. On WSL, the Linux and Windows programs are separate, so update each one you use.
 
 ### Option 2: install with pipx (needs Python)
 
